@@ -1,37 +1,57 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import sqlite3
+import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
 
-DB_FILE = "chat_messages.db"
+# PostgreSQL credentials
+DB_USER = "postgres"                 # your PostgreSQL username
+DB_PASSWORD = "chisom"  # your PostgreSQL password
+DB_HOST = "localhost"
+DB_PORT = "5432"
+DB_NAME = "frienddfriends_db"       # name of the database you want to create
+# Step 1: Connect to default DB and create your DB if needed
+def create_database():
+    conn = psycopg2.connect(dbname="postgres", user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    cur = conn.cursor()
+    cur.execute(f"SELECT 1 FROM pg_catalog.pg_database WHERE datname = '{DB_NAME}'")
+    if not cur.fetchone():
+        cur.execute(f"CREATE DATABASE {DB_NAME}")
+        print(f"Database '{DB_NAME}' created.")
+    else:
+        print(f"Database '{DB_NAME}' already exists.")
+    cur.close()
+    conn.close()
 
-# Initialize database
+# Step 2: Create messages table
 def init_db():
-    conn = sqlite3.connect(DB_FILE)
+    conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
     c = conn.cursor()
     c.execute("""
         CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            sender TEXT,
-            receiver TEXT,
-            text TEXT,
-            timestamp TEXT
+            id SERIAL PRIMARY KEY,
+            sender TEXT NOT NULL,
+            receiver TEXT NOT NULL,
+            text TEXT NOT NULL,
+            timestamp TEXT NOT NULL
         )
     """)
     conn.commit()
+    c.close()
     conn.close()
 
+create_database()
 init_db()
 
-# Root route
+# --- Flask Routes ---
 @app.route("/")
 def home():
     return jsonify({"status": "FriendDFriends API is running"}), 200
 
-# Send message
 @app.route("/send", methods=["POST"])
 def send_message():
     data = request.get_json()
@@ -44,47 +64,32 @@ def send_message():
 
     timestamp = datetime.now().strftime("%H:%M:%S")
 
-    conn = sqlite3.connect(DB_FILE)
+    conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
     c = conn.cursor()
     c.execute(
-        "INSERT INTO messages (sender, receiver, text, timestamp) VALUES (?, ?, ?, ?)",
+        "INSERT INTO messages (sender, receiver, text, timestamp) VALUES (%s, %s, %s, %s) RETURNING id",
         (sender, receiver, text, timestamp)
     )
-    msg_id = c.lastrowid
+    msg_id = c.fetchone()[0]
     conn.commit()
+    c.close()
     conn.close()
 
-    return jsonify({
-        "id": msg_id,
-        "sender": sender,
-        "receiver": receiver,
-        "text": text,
-        "timestamp": timestamp
-    }), 200
+    return jsonify({"id": msg_id, "sender": sender, "receiver": receiver, "text": text, "timestamp": timestamp}), 200
 
-# Fetch all messages for a user
 @app.route("/messages/<username>", methods=["GET"])
 def get_messages(username):
-    conn = sqlite3.connect(DB_FILE)
+    conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
     c = conn.cursor()
     c.execute(
-        "SELECT id, sender, receiver, text, timestamp FROM messages WHERE receiver=? OR sender=? ORDER BY id ASC",
+        "SELECT id, sender, receiver, text, timestamp FROM messages WHERE receiver=%s OR sender=%s ORDER BY id ASC",
         (username, username)
     )
     rows = c.fetchall()
+    c.close()
     conn.close()
 
-    messages = []
-    for r in rows:
-        messages.append({
-            "id": r[0],
-            "sender": r[1],
-            "receiver": r[2],
-            "text": r[3],
-            "timestamp": r[4]
-        })
-
-    return jsonify(messages), 200
+    return jsonify([{"id": r[0], "sender": r[1], "receiver": r[2], "text": r[3], "timestamp": r[4]} for r in rows]), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
