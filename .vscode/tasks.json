@@ -1,0 +1,31 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "Build FriendDFriends (with libcurl)",
+            "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "${file}",
+                "-o",
+                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-IC:\\curl-8.16.0_14-win64-mingw\\curl-8.16.0_14-win64-mingw\\include",
+                "-LC:\\curl-8.16.0_14-win64-mingw\\curl-8.16.0_14-win64-mingw\\lib",
+                "-lcurl"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Builds C++ files and links with libcurl."
+        }
+    ]
+}

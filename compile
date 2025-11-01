@@ -1,0 +1,6 @@
+
+g++ client1.cpp -o client1 -IC:\curl-8.16.0_14-win64-mingw\curl-8.16.0_14-win64-mingw\include -LC:\curl-8.16.0_14-win64-mingw\curl-8.16.0_14-win64-mingw\lib -lcurl
+
+
+
+g++ client2.cpp -o client2 -IC:\curl-8.16.0_14-win64-mingw\curl-8.16.0_14-win64-mingw\include -LC:\curl-8.16.0_14-win64-mingw\curl-8.16.0_14-win64-mingw\lib -lcurl

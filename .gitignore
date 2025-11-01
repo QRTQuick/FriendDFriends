@@ -1,0 +1,43 @@
+# =========================
+# OS / Editor
+# =========================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VSCode settings
+.vscode/
+
+# =========================
+# Python / C++ build files
+# =========================
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# C++ build artifacts
+*.exe
+*.obj
+*.o
+*.dll
+*.lib
+*.pdb
+*.out
+
+# =========================
+# Database / temporary files
+# =========================
+chat_messages.db
+*.sqlite
+*.log
+
+# =========================
+# Misc
+# =========================
+*.swp
+*.bak
+*.tmp
+*.DS_Store
