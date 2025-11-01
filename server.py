@@ -8,12 +8,13 @@ app = Flask(__name__)
 CORS(app)
 
 # PostgreSQL credentials
-DB_USER = "postgres"                 # your PostgreSQL username
-DB_PASSWORD = "chisom"  # your PostgreSQL password
-DB_HOST = "localhost"
-DB_PORT = "5432"
-DB_NAME = "frienddfriends_db"       # name of the database you want to create
-# Step 1: Connect to default DB and create your DB if needed
+import os
+
+DB_USER = os.environ["DB_USER"]
+DB_PASSWORD = os.environ["DB_PASSWORD"]
+DB_HOST = os.environ["DB_HOST"]
+DB_PORT = os.environ.get("DB_PORT", "5432")
+DB_NAME = os.environ["DB_NAME"]
 def create_database():
     conn = psycopg2.connect(dbname="postgres", user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
